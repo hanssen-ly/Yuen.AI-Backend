@@ -6,14 +6,14 @@ import jwt from "jsonwebtoken";
 
 export const register = async (req: Request, res: Response) => {
     try {
-        const {name, email, password} = req.body;
-        if (!name || !email || !password){
+        const { name, email, password } = req.body;
+        if (!name || !email || !password) {
             return res
-            .status(400)
-            .json({ message: "Name, email, and password are required." });
+                .status(400)
+                .json({ message: "Name, email, and password are required." });
         }
 
-        const existingUser = await User.findOne({email});
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(409).json({ message: "Email already in use." });
         }
@@ -23,12 +23,30 @@ export const register = async (req: Request, res: Response) => {
         const user = new User({ name, email, password: hashedPassword });
         await user.save();
 
+        const token = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET!,
+            { expiresIn: "24h" }
+        );
+
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
+
+        const session = new Session({
+            userId: user._id,
+            token,
+            expiresAt,
+            deviceInfo: req.headers["user-agent"],
+        });
+        await session.save();
+
         res.status(201).json({
             user: {
                 _id: user._id,
                 name: user.name,
                 email: user.email,
             },
+            token,
             message: "User registered successfully.",
         });
     } catch (error) {
@@ -38,11 +56,11 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
     try {
-        const {email, password} = req.body;
+        const { email, password } = req.body;
         if (!email || !password) {
             return res
-            .status(400)
-            .json({ message: "Email and password are required." });
+                .status(400)
+                .json({ message: "Email and password are required." });
         }
 
         const user = await User.findOne({ email });
@@ -57,7 +75,7 @@ export const login = async (req: Request, res: Response) => {
 
         const token = jwt.sign(
             { userId: user._id },
-            process.env.JWT_SECRET || "your-secret-key",
+            process.env.JWT_SECRET!,
             { expiresIn: "24h" }
         );
 
@@ -81,9 +99,8 @@ export const login = async (req: Request, res: Response) => {
             token,
             message: "Login successful",
         });
-
-        } catch (error){
-            res.status(500).json({ message: "Server error", error });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
     }
 };
 
