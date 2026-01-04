@@ -9,7 +9,6 @@
     "build": "tsc",
     "dev": "nodemon src/index.ts",
     "inngest": "inngest-cli dev"
-
   },
   "keywords": [],
   "author": "",
@@ -29,6 +28,12 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/uuid": "^10.0.0",
     "inngest": "^3.48.0",
     "inngest-cli": "^1.15.1",
     "nodemon": "^3.1.11",
