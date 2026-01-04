@@ -97,7 +97,11 @@ export const sendMessage = async (req: Request, res: Response) => {
 
         logger.info("Sending message to Inngest:", {event});
 
-        await inngest.send(event);
+        try {
+          await inngest.send(event);
+        } catch (err) {
+          console.error("Inngest error (non-fatal):", err);
+        }
 
         const analysisPrompt = `Analyze this therapy message and provide insights. Return ONLY a valid JSON object with no markdown formatting or additional text.
         Message: ${message}
