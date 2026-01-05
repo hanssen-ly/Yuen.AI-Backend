@@ -35,3 +35,31 @@ export const createMood = async (
         next(error);
     }
 };
+
+export const getTodayMood = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const userId = req.user?._id;
+
+        if (!userId) {
+            return res.status(401).json({ message: "User not authenticated" });
+        }
+
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const mood = await Mood.findOne({
+            userId,
+            timestamp: { $gte: startOfToday },
+        }).sort({ timestamp: -1 });
+
+        res.status(200).json({
+            score: mood?.score ?? null,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
